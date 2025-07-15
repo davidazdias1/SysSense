@@ -11,7 +11,7 @@ REGISTRO_DIGITAL = 14  # HR 40015 = address 14 (porque começa em 40001)
 API_URL = "http://127.0.0.1:8000/velocidade_logger"
 
 INTERVALO_LEITURA = 1  # segundos
-TEMPO_ATIVO = timedelta(seconds=30)
+TEMPO_ATIVO = timedelta(seconds=60)
 
 # ------------------ Variáveis de Estado ------------------
 tempo_ultimo_movimento = None
@@ -39,14 +39,17 @@ while True:
     if estado is not None:
         print(f"Estado lido: {estado}")
 
-        if estado == 0:
+        if estado == 5:
             # Tapete em movimento
             tempo_ultimo_movimento = agora
-            velocidade = 0.5
+            distancia_metros = 0.455  # distância percorrida
+            tempo_segundos = 17       # tempo que demora a percorrer essa distância
+            velocidade = distancia_metros / tempo_segundos  # ~0.0267 m/s
         else:
             # Tapete parado por mais de 30 segundos
             if tempo_ultimo_movimento and agora - tempo_ultimo_movimento > TEMPO_ATIVO:
                 velocidade = 0.0
+
 
         print(f"Velocidade: {velocidade}")
 

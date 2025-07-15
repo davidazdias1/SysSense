@@ -22,11 +22,10 @@ mongo = MongoClient(MONGO_URI)
 db = mongo[DB_NAME]
 collection_status: Collection = db["comunicacao_logger"]
 collection_temp: Collection = db["temperatura_logger"]
+collection_unidades: Collection = db["contador_unidades_logger"]
 collection_velocidade: Collection = db["velocidade_logger"]
+collection_temp_cupula: Collection = db["temperatura_cupula"]
 collection_humidade: Collection = db["humidade_logger"]
-collection_unidades_pequenas: Collection = db["contador_unidades_logger"]
-collection_unidades_grandes: Collection = db["contador_unidades_logger_grandes"]
-
 
 # ---------------- FastAPI ----------------
 app = FastAPI()
@@ -88,6 +87,16 @@ def postar_temperatura(dado: TemperaturaEntrada):
     return {"msg": "Temperatura inserida com sucesso", "dados": registro}
     
     
+@app.post("/temperatura_cupula")
+def postar_temp_cupula(dado: TemperaturaEntrada):
+    registro = {
+        "timestamp": datetime.utcnow(),
+        "sensor": dado.sensor,
+        "valor": dado.valor
+    }
+    result = collection_temp_cupula.insert_one(registro)
+    registro["_id"] = str(result.inserted_id)
+    return {"msg": "Temperatura da cúpula inserida com sucesso", "dados": registro}
 
 @app.post("/humidade_logger")
 def postar_humidade(dado: TemperaturaEntrada):  # reutilizando o modelo com sensor/valor
@@ -102,16 +111,9 @@ def postar_humidade(dado: TemperaturaEntrada):  # reutilizando o modelo com sens
 
 
 @app.post("/contador_unidades_logger")
-def postar_contador_pequenas(dado: ContadorEntrada):
-    registro = {"timestamp": datetime.utcnow(), "sensor": dado.sensor, "valor": dado.valor}
-    collection_unidades_pequenas.insert_one(registro)
-    return {"msg": "Contador de pequenas inserido com sucesso", "dados": registro}
-
-
-@app.post("/contador_unidades_logger_grandes")
 def postar_contador(dado: ContadorEntrada):
     registro = {"timestamp": datetime.utcnow(), "sensor": dado.sensor, "valor": dado.valor}
-    collection_unidades_grandes.insert_one(registro)
+    collection_unidades.insert_one(registro)
     return {"msg": "Contador inserido com sucesso", "dados": registro}
 
 
@@ -119,9 +121,9 @@ def postar_contador(dado: ContadorEntrada):
 RELAY1_COIL_ADDRESS = 8  # Coil direto do Relé 1
 RELAY2_COIL_ADDRESS = 9  # Coil do Relé 2 (humidificador)
 
-@app.get("/ultima_temperatura")
-def get_ultima_temperatura():
-    ultimo = collection_temp.find_one(sort=[("timestamp", -1)])
+@app.get("/ultima_temperatura_cupula")
+def get_ultima_temperatura_cupula():
+    ultimo = collection_temp_cupula.find_one(sort=[("timestamp", -1)])
     if ultimo:
         return {"timestamp": ultimo["timestamp"], "valor": ultimo["valor"]}
     else:
@@ -144,35 +146,9 @@ def get_ultima_humidade():
 def controlar_rele_temp(state: str):
     return controlar_rele_generico(state, RELAY1_COIL_ADDRESS, "Ventilador")
 
-import time
-
 @app.post("/relay_hum/{state}")
-def controlar_hum_impulso(state: str):
-    if state not in ["on", "off"]:
-        return JSONResponse(content={"error": "Estado inválido"}, status_code=400)
-
-    try:
-        client = ModbusTcpClient(FIELDLOGGER_IP, port=FIELDLOGGER_PORT)
-        if not client.connect():
-            raise Exception("Falha de conexão com FieldLogger")
-
-        client.unit_id = MODBUS_UNIT_ID
-        pulsos = 1 if state == "on" else 2
-
-        for _ in range(pulsos):
-            client.write_coil(RELAY2_COIL_ADDRESS, True)
-            time.sleep(0.1)
-            client.write_coil(RELAY2_COIL_ADDRESS, False)
-            time.sleep(0.1)
-
-        return {"status": f"Humidificador {'ligado' if state == 'on' else 'desligado'} com {pulsos} impulso(s)"}
-
-    except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
-
-    finally:
-        client.close()
-
+def controlar_rele_hum(state: str):
+    return controlar_rele_generico(state, RELAY2_COIL_ADDRESS, "Humidificador") 
     
 @app.post("/relay/{state}")
 def controlar_rele(state: str):

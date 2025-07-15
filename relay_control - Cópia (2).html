@@ -199,13 +199,10 @@
 </div>
 
 <script>
-let estadoManualTemp = 'off';
-let estadoManualHum = 'off';
-let estadoAutoTemp = 'off';
-let estadoAutoHum = 'off';
-let intervaloTemp = null;
-let intervaloHum = null;
-
+  let estadoManualTemp = 'off';
+  let estadoManualHum = 'off';
+  let intervaloTemp = null;
+  let intervaloHum = null;
 
   function definirModoTemp(modo) {
     document.getElementById('manual-controls-temp').style.display = modo === 'manual' ? 'block' : 'none';
@@ -228,28 +225,26 @@ let intervaloHum = null;
     }
   }
 
-function definirModoHum(modo) {
-  document.getElementById('manual-controls-hum').style.display = modo === 'manual' ? 'block' : 'none';
-  document.getElementById('auto-controls-hum').style.display = modo === 'auto' ? 'block' : 'none';
+  function definirModoHum(modo) {
+    document.getElementById('manual-controls-hum').style.display = modo === 'manual' ? 'block' : 'none';
+    document.getElementById('auto-controls-hum').style.display = modo === 'auto' ? 'block' : 'none';
 
-  if (modo === 'manual') {
-    if (intervaloHum) {
-      clearInterval(intervaloHum);
-      intervaloHum = null;
+    if (modo === 'manual') {
+      if (intervaloHum) {
+        clearInterval(intervaloHum);
+        intervaloHum = null;
+        document.getElementById('resposta_hum').innerText = "Modo Auto desativado.";
+      }
+      atualizarTextoBotaoHum();
     }
-    estadoAutoHum = 'off'; // 🔴 DESATIVA O AUTO!
-    document.getElementById('resposta_hum').innerText = "Modo Auto desativado.";
-    atualizarTextoBotaoHum();
-  }
 
-  if (modo === 'auto') {
-    if (estadoManualHum === 'on') {
-      alert("Desliga primeiro o humidificador manual para usar o modo auto.");
-      document.getElementById('auto-controls-hum').style.display = 'none';
+    if (modo === 'auto') {
+      if (estadoManualHum === 'on') {
+        alert("Desliga primeiro o humidificador manual para usar o modo auto.");
+        document.getElementById('auto-controls-hum').style.display = 'none';
+      }
     }
   }
-}
-
 
   async function alternarModoTemp() {
     if (estadoManualTemp === 'off') {
@@ -262,30 +257,16 @@ function definirModoHum(modo) {
     atualizarTextoBotaoTemp();
   }
 
-async function alternarModoHum() {
-  // DESATIVA o modo auto imediatamente
-  if (intervaloHum) {
-    clearInterval(intervaloHum);
-    intervaloHum = null;
+  async function alternarModoHum() {
+    if (estadoManualHum === 'off') {
+      await enviarImpulsos(1); // ligar
+      estadoManualHum = 'on';
+    } else {
+      await enviarImpulsos(2); // desligar
+      estadoManualHum = 'off';
+    }
+    atualizarTextoBotaoHum();
   }
-  estadoAutoHum = 'off';
-
-  // Aguarda um ciclo de tempo para garantir que o intervalo parou
-  await esperar(100); // evita conflitos de execução
-
-  if (estadoManualHum === 'off') {
-    estadoManualHum = 'on'; // muda o estado ANTES dos impulsos
-    await enviarImpulsos(1); // Ligar
-  } else {
-    estadoManualHum = 'off';
-    await enviarImpulsos(2); // Desligar
-  }
-
-  atualizarTextoBotaoHum();
-}
-
-
-
 
   function atualizarTextoBotaoTemp() {
     const texto = estadoManualTemp === 'on' ? 'Desligar Ventilador' : 'Ligar Ventilador';
@@ -325,7 +306,7 @@ async function alternarModoHum() {
 
   async function verificarLimitesTemp(min, max) {
     try {
-      const response = await fetch('/ultima_temperatura');
+      const response = await fetch('/ultima_temperatura_cupula');
       const data = await response.json();
       const valor = parseFloat(data.valor);
 
@@ -338,31 +319,29 @@ async function alternarModoHum() {
     }
   }
 
-function iniciarAutoHum() {
-  const min = parseFloat(document.getElementById("humMin").value);
-  const max = parseFloat(document.getElementById("humMax").value);
+  function iniciarAutoHum() {
+    const min = parseFloat(document.getElementById("humMin").value);
+    const max = parseFloat(document.getElementById("humMax").value);
 
-  if (isNaN(min) || isNaN(max) || min >= max) {
-    document.getElementById("resposta_hum").innerText = "Limites inválidos.";
-    return;
+    if (isNaN(min) || isNaN(max) || min >= max) {
+      document.getElementById("resposta_hum").innerText = "Limites inválidos.";
+      return;
+    }
+
+    if (estadoManualHum === 'on') {
+      alert("Desliga o humidificador manual primeiro.");
+      return;
+    }
+
+    if (intervaloHum) clearInterval(intervaloHum);
+
+    verificarLimitesHum(min, max);
+    intervaloHum = setInterval(() => verificarLimitesHum(min, max), 5000);
   }
-
-  if (estadoManualHum === 'on') {
-    alert("Desliga o humidificador manual primeiro.");
-    return;
-  }
-
-  if (intervaloHum) clearInterval(intervaloHum);
-
-  estadoAutoHum = 'on';
-  verificarLimitesHum(min, max);
-  intervaloHum = setInterval(() => verificarLimitesHum(min, max), 5000);
-}
-
 
 async function verificarLimitesHum(min, max) {
-  // Só continua se o modo auto estiver ativo
-  if (estadoAutoHum !== 'on') return;
+  // Impede funcionamento se estiver em modo manual
+  if (estadoManualHum === 'on') return;
 
   try {
     const response = await fetch('/ultima_humidade');
@@ -372,15 +351,17 @@ async function verificarLimitesHum(min, max) {
     if (!isNaN(valor)) {
       if (valor <= min) {
         await enviarImpulsos(1); // Ligar
+        estadoManualHum = 'on';
       } else if (valor >= max) {
         await enviarImpulsos(2); // Desligar
+        estadoManualHum = 'off';
       }
+      atualizarTextoBotaoHum();
     }
   } catch {
     document.getElementById("resposta_hum").innerText = "Erro ao obter humidade.";
   }
 }
-
 
 
 
@@ -397,20 +378,17 @@ async function verificarLimitesHum(min, max) {
     document.getElementById("resposta_temp").style.color = "green";
   }
 
-function pararAutoHum() {
-  if (intervaloHum) {
-    clearInterval(intervaloHum);
-    intervaloHum = null;
+  function pararAutoHum() {
+    if (intervaloHum) {
+      clearInterval(intervaloHum);
+      intervaloHum = null;
+    }
+    enviarImpulsos(2); // desligar
+    document.getElementById("humMin").value = '';
+    document.getElementById("humMax").value = '';
+    document.getElementById("resposta_hum").innerText = "Modo Auto desativado.";
+    document.getElementById("resposta_hum").style.color = "green";
   }
-
-  estadoAutoHum = 'off';
-  enviarImpulsos(2); // desliga o humidificador
-  document.getElementById("humMin").value = '';
-  document.getElementById("humMax").value = '';
-  document.getElementById("resposta_hum").innerText = "Modo Auto desativado.";
-  document.getElementById("resposta_hum").style.color = "green";
-}
-
 
   async function enviarImpulsos(qtd) {
     for (let i = 0; i < qtd; i++) {
@@ -451,7 +429,7 @@ function pararAutoHum() {
   async function atualizarInfos() {
     try {
       const [temp, hum] = await Promise.all([
-        fetch('/ultima_temperatura').then(r => r.json()),
+        fetch('/ultima_temperatura_cupula').then(r => r.json()),
         fetch('/ultima_humidade').then(r => r.json())
       ]);
       document.getElementById("info_temp").innerText = `Temperatura atual: ${temp.valor ?? "--"} °C`;
