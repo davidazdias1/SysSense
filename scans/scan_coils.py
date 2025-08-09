@@ -5,6 +5,7 @@ client.unit_id = 1
 
 if not client.connect():
     print("❌ Não foi possível conectar ao FieldLogger")
+    input("Pressione Enter para sair...")
     exit()
 
 print("🔎 Varredura de Coils (0–50)...")
@@ -19,3 +20,4 @@ for addr in range(0, 51):
         print(f"[ ] {addr}: Exceção - {e}")
 
 client.close()
+input("\n✅ Varredura concluída. Pressione Enter para sair...")

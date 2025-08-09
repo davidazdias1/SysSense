@@ -3,44 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <title>Controlo do Processo - SysSense</title>
+  <!-- Estilos principais da página -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f4f7f9;
+    /* Faz html e body ocuparem 100% da altura para evitar scroll vertical desnecessário */
+    html, body {
+      height: 100%;
       margin: 0;
       padding: 0;
     }
 
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f4f7f9;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Cabeçalho */
     header {
-      background-color: #ffffff;
+      background: #fff;
       padding: 12px 24px;
       display: flex;
       align-items: center;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       border-bottom: 3px solid #2980b9;
+      flex-shrink: 0;
     }
-
     .logo {
       height: 55px;
       margin-right: 16px;
     }
-
-    .main {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      padding: 50px 20px;
-      flex-wrap: wrap;
+    .btn-monitor {
+      margin-left: auto;
+      background: linear-gradient(to right,#3498db,#2980b9);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      text-decoration: none;
     }
 
+    /* Grid principal, 4 colunas iguais e altura unificada */
+    .main {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-auto-rows: 1fr;                      /* todas as linhas com mesma altura */
+      gap: 24px;
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+      flex-grow: 1;
+      overflow: auto;
+    }
+
+    /* Cada cartão ocupa toda a altura da célula e distribui o conteúdo verticalmente */
     .card {
-      background: white;
-      width: 380px;
+      background: #fff;
       padding: 30px;
       text-align: center;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
       border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     h2 {
@@ -48,15 +73,15 @@
       font-size: 22px;
       margin-bottom: 10px;
     }
-
     p {
       color: #555;
       margin-bottom: 12px;
     }
 
+    /* Botões */
     button {
       background: linear-gradient(to right, #3498db, #2980b9);
-      color: white;
+      color: #fff;
       padding: 10px 24px;
       margin: 6px;
       border: none;
@@ -65,16 +90,11 @@
       cursor: pointer;
       font-weight: 500;
     }
-
     button:hover {
       background: linear-gradient(to right, #2471a3, #1f618d);
     }
 
-    .inputs-auto {
-      display: none;
-      margin-top: 15px;
-    }
-
+    .inputs-auto { display: none; margin-top: 15px; }
     input[type=number] {
       padding: 8px;
       margin: 5px;
@@ -83,393 +103,464 @@
       border: 1px solid #ccc;
       border-radius: 6px;
     }
+	.card video {
+  display: block;          /* elimina gaps inline */
+  width: 100%;             /* ocupa toda a largura interna do cartão */
+  height: auto;            /* mantém proporção */
+  box-sizing: border-box;  /* inclui borda no cálculo de largura */
+  max-height: 300px;       /* opcional: limita altura, ajuste conforme precisar */
+}
+
 
     .resposta {
       margin-top: 12px;
       font-weight: 600;
       color: #27ae60;
     }
-
     .info {
       margin-top: 12px;
       font-size: 15px;
       color: #333;
     }
 
-    @media (max-width: 800px) {
-      .main {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .card {
-        width: 90%;
-      }
+    @media (max-width: 600px) {
+      .main { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-<header>
-  <img src="/static/syssense_logo.png" alt="SysSense Logo" class="logo">
-  <div style="margin-left: auto;">
-    <a href="http://192.168.100.2:3000/" style="background: linear-gradient(to right, #3498db, #2980b9); color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none;">
-      Monitor
-    </a>
-  </div>
-</header>
+  <header>
+    <img src="/static/syssense_logo.png" alt="SysSense Logo" class="logo">
+    <a href="http://192.168.100.2:3000/" class="btn-monitor">Monitor</a>
+  </header>
 
-<div class="main">
+  <div class="main">
+    <!-- Cartão Ventilador -->
+    <div class="card">
+      <div>
+        <h2>Controlo do Ventilador</h2>
+        <p>Escolha o modo:</p>
+        <button id="btnTempManualMode">Manual</button>
+        <button id="btnTempAutoMode">Auto</button>
+        <div id="manual-controls-temp">
+          <button id="botaoModoTemp">Ligar Ventilador</button>
+        </div>
+        <div id="auto-controls-temp" class="inputs-auto">
+          <p>Limites de temperatura:</p>
+          <input type="number" id="tempMin" placeholder="Temp. Min.">
+          <input type="number" id="tempMax" placeholder="Temp. Max."><br>
+          <button id="botaoAutoTemp">Aplicar</button>
+        </div>
+        <div class="info" id="info_temp">Temperatura atual: -- °C</div>
+      </div>
+      <p class="resposta" id="resposta_temp"></p>
+    </div>
 
-<!-- VENTILADOR -->
-<div class="card">
-  <h2>Controlo do Ventilador</h2>
-  <p>Escolha o modo de funcionamento:</p>
-  <button onclick="definirModoTemp('manual')">Modo Manual</button>
-  <button onclick="definirModoTemp('auto')">Modo Auto</button>
+    <!-- Cartão Humidificador -->
+    <div class="card">
+      <div>
+        <h2>Controlo do Humidificador</h2>
+        <p>Escolha o modo:</p>
+        <button id="btnHumManualMode">Manual</button>
+        <button id="btnHumAutoMode">Auto</button>
+        <div id="manual-controls-hum">
+          <button id="botaoModoHum">Ligar Humidificador</button>
+        </div>
+        <div id="auto-controls-hum" class="inputs-auto">
+          <p>Limites de humidade:</p>
+          <input type="number" id="humMin" placeholder="Hum. Min.">
+          <input type="number" id="humMax" placeholder="Hum. Max."><br>
+          <button id="botaoAutoHum">Aplicar</button>
+        </div>
+        <div class="info" id="info_hum">Humidade atual: -- %</div>
+      </div>
+      <p class="resposta" id="resposta_hum"></p>
+    </div>
 
-  <!-- Modo Manual -->
-  <div id="manual-controls-temp" style="display: none;">
-    <button id="botaoModoTemp" onclick="alternarModoTemp()">Ligar Ventilador</button>
-  </div>
+    <!-- Cartão Webcam -->
+    <div class="card">
+      <div>
+        <h2>Visualizador</h2>
+        <p>Câmara ao vivo:</p>
+        <video id="mini-video" autoplay muted playsinline width="320" height="200"
+               style="border:2px solid #3498db;border-radius:8px;cursor:pointer"></video>
+      </div>
+    </div>
 
-  <!-- Modo Auto -->
-  <div id="auto-controls-temp" class="inputs-auto">
-    <p>Limites de temperatura:</p>
-    <input type="number" id="tempMin" placeholder="Temp. Min.">
-    <input type="number" id="tempMax" placeholder="Temp. Max.">
-    <br>
-    <button onclick="iniciarAutoTemp()">Aplicar</button>
-    <button onclick="pararAutoTemp()">Desativar Auto</button>
-  </div>
-
-  <div class="info" id="info_temp">Temperatura atual: -- °C</div>
-  <p class="resposta" id="resposta_temp"></p>
-</div>
-
-
-<!-- HUMIDIFICADOR -->
-<div class="card">
-  <h2>Controlo do Humidificador</h2>
-  <p>Escolha o modo de funcionamento:</p>
-  <button onclick="definirModoHum('manual')">Modo Manual</button>
-  <button onclick="definirModoHum('auto')">Modo Auto</button>
-
-  <!-- Modo Manual -->
-  <div id="manual-controls-hum" style="display: none;">
-    <button id="botaoModoHum" onclick="alternarModoHum()">Ligar Humidificador</button>
-  </div>
-
-  <!-- Modo Auto -->
-  <div id="auto-controls-hum" class="inputs-auto">
-    <p>Limites de humidade:</p>
-    <input type="number" id="humMin" placeholder="Hum. Min.">
-    <input type="number" id="humMax" placeholder="Hum. Max.">
-    <br>
-    <button onclick="iniciarAutoHum()">Aplicar</button>
-    <button onclick="pararAutoHum()">Desativar Auto</button>
-  </div>
-
-  <div class="info" id="info_hum">Humidade atual: -- %</div>
-  <p class="resposta" id="resposta_hum"></p>
-</div>
-
-
-  <!-- Webcam -->
-  <div class="card">
-    <h2>Visualizador</h2>
-    <p>Cam ao vivo do ambiente:</p>
-    <div style="display: flex; justify-content: center;">
-      <video id="mini-video" autoplay muted playsinline width="320" height="200"
-        style="border: 2px solid #3498db; border-radius: 8px; cursor: pointer;" onclick="abrirModal()">
-      </video>
+    <!-- Cartão Tapete / Luz Verde -->
+    <div class="card">
+      <div>
+        <h2>Controlo do Tapete</h2>
+        <p>Estado atual: <strong><span id="info_tapete">--</span></strong></p>
+        <button id="btnTapeteToggle">Ligar Tapete</button>
+      </div>
+      <p class="resposta" id="resposta_tapete"></p>
     </div>
   </div>
 
-  <div id="modal-stream" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-       background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000;">
-    <div style="background: #fff; padding: 20px; border-radius: 10px;">
+  <!-- Modal de stream -->
+  <div id="modal-stream" style="display:none;position:fixed;top:0;left:0;
+      width:100%;height:100%;background:rgba(0,0,0,0.6);
+      justify-content:center;align-items:center;z-index:1000">
+    <div style="background:#fff;padding:20px;border-radius:10px">
       <video id="full-video" autoplay muted playsinline width="800" height="500"
-        style="border: 2px solid #2980b9; border-radius: 10px;"></video>
-      <div style="text-align: right; margin-top: 10px;">
-        <button onclick="fecharModal()" style="padding: 6px 12px;">Fechar</button>
+             style="border:2px solid #2980b9;border-radius:10px"></video>
+      <div style="text-align:right;margin-top:10px">
+        <button id="btnCloseModal">Fechar</button>
       </div>
     </div>
   </div>
-</div>
 
 <script>
-let estadoManualTemp = 'off';
-let estadoManualHum = 'off';
-let estadoAutoTemp = 'off';
-let estadoAutoHum = 'off';
-let intervaloTemp = null;
-let intervaloHum = null;
+  // Obter referências aos elementos do DOM
+  const btnTempManualMode = document.getElementById('btnTempManualMode');
+  const btnTempAutoMode   = document.getElementById('btnTempAutoMode');
+  const manualControlsTemp= document.getElementById('manual-controls-temp');
+  const autoControlsTemp  = document.getElementById('auto-controls-temp');
+  const botaoModoTemp     = document.getElementById('botaoModoTemp');
+  const botaoAutoTemp     = document.getElementById('botaoAutoTemp');
+  const tempMinInput      = document.getElementById('tempMin');
+  const tempMaxInput      = document.getElementById('tempMax');
+  const respostaTemp      = document.getElementById('resposta_temp');
+  const infoTemp          = document.getElementById('info_temp');
 
+  const btnHumManualMode  = document.getElementById('btnHumManualMode');
+  const btnHumAutoMode    = document.getElementById('btnHumAutoMode');
+  const manualControlsHum = document.getElementById('manual-controls-hum');
+  const autoControlsHum   = document.getElementById('auto-controls-hum');
+  const botaoModoHum      = document.getElementById('botaoModoHum');
+  const botaoAutoHum      = document.getElementById('botaoAutoHum');
+  const humMinInput       = document.getElementById('humMin');
+  const humMaxInput       = document.getElementById('humMax');
+  const respostaHum       = document.getElementById('resposta_hum');
+  const infoHum           = document.getElementById('info_hum');
 
-  function definirModoTemp(modo) {
-    document.getElementById('manual-controls-temp').style.display = modo === 'manual' ? 'block' : 'none';
-    document.getElementById('auto-controls-temp').style.display = modo === 'auto' ? 'block' : 'none';
+  const miniVideo         = document.getElementById('mini-video');
+  const fullVideo         = document.getElementById('full-video');
+  const modalStream       = document.getElementById('modal-stream');
+  const btnCloseModal     = document.getElementById('btnCloseModal');
 
-    if (modo === 'manual') {
-      if (intervaloTemp) {
-        clearInterval(intervaloTemp);
-        intervaloTemp = null;
-        document.getElementById('resposta_temp').innerText = "Modo Auto desativado.";
-      }
-      atualizarTextoBotaoTemp();
-    }
+  // Estados internos das lógicas
+  let estadoManualTemp='off', estadoAutoTemp='off', estadoRealTemp='off';
+  let estadoManualHum='off',  estadoAutoHum='off',  estadoRealHum='off';
+  let intervaloTemp=null, intervaloHum=null, executandoAutoHum=false;
+  let intervaloPiscar=null, alertaAtivo=false;
 
-    if (modo === 'auto') {
-      if (estadoManualTemp === 'on') {
-        alert("Desliga primeiro o ventilador manual para usar o modo auto.");
-        document.getElementById('auto-controls-temp').style.display = 'none';
-      }
-    }
+  // ==============================================
+  // Funções de controlo da luz de alerta
+  // ==============================================
+  /** Pisca a luz a cada 600ms */
+  async function piscarLuz(){
+    let st = false;
+    if(intervaloPiscar) clearInterval(intervaloPiscar);
+    intervaloPiscar = setInterval(async ()=>{
+      st = !st;
+      await fetch(`/escrever_registro/27/${st?1:0}`, { method:'POST' });
+    }, 600);
   }
-
-function definirModoHum(modo) {
-  document.getElementById('manual-controls-hum').style.display = modo === 'manual' ? 'block' : 'none';
-  document.getElementById('auto-controls-hum').style.display = modo === 'auto' ? 'block' : 'none';
-
-  if (modo === 'manual') {
-    if (intervaloHum) {
-      clearInterval(intervaloHum);
-      intervaloHum = null;
-    }
-    estadoAutoHum = 'off'; // 🔴 DESATIVA O AUTO!
-    document.getElementById('resposta_hum').innerText = "Modo Auto desativado.";
-    atualizarTextoBotaoHum();
+  /** Para o piscar e desliga a luz */
+  function pararPiscarLuz(){
+    if(intervaloPiscar) clearInterval(intervaloPiscar), intervaloPiscar=null;
+    fetch('/escrever_registro/27/0',{method:'POST'});
   }
-
-  if (modo === 'auto') {
-    if (estadoManualHum === 'on') {
-      alert("Desliga primeiro o humidificador manual para usar o modo auto.");
-      document.getElementById('auto-controls-hum').style.display = 'none';
-    }
-  }
-}
-
-
-  async function alternarModoTemp() {
-    if (estadoManualTemp === 'off') {
-      await controlar('temp', 'on');
-      estadoManualTemp = 'on';
+  /** Avalia se a luz deve piscar (se algum dispositivo estiver ligado) */
+  function avaliarPiscar(){
+    if(estadoRealTemp==='on' || estadoRealHum==='on'){
+      if(!alertaAtivo){ alertaAtivo=true; piscarLuz(); }
     } else {
-      await controlar('temp', 'off');
-      estadoManualTemp = 'off';
-    }
-    atualizarTextoBotaoTemp();
-  }
-
-async function alternarModoHum() {
-  // DESATIVA o modo auto imediatamente
-  if (intervaloHum) {
-    clearInterval(intervaloHum);
-    intervaloHum = null;
-  }
-  estadoAutoHum = 'off';
-
-  // Aguarda um ciclo de tempo para garantir que o intervalo parou
-  await esperar(100); // evita conflitos de execução
-
-  if (estadoManualHum === 'off') {
-    estadoManualHum = 'on'; // muda o estado ANTES dos impulsos
-    await enviarImpulsos(1); // Ligar
-  } else {
-    estadoManualHum = 'off';
-    await enviarImpulsos(2); // Desligar
-  }
-
-  atualizarTextoBotaoHum();
-}
-
-
-
-
-  function atualizarTextoBotaoTemp() {
-    const texto = estadoManualTemp === 'on' ? 'Desligar Ventilador' : 'Ligar Ventilador';
-    document.getElementById('botaoModoTemp').innerText = texto;
-  }
-
-  function atualizarTextoBotaoHum() {
-    const texto = estadoManualHum === 'on' ? 'Desligar Humidificador' : 'Ligar Humidificador';
-    document.getElementById('botaoModoHum').innerText = texto;
-  }
-
-  async function controlar(tipo, estado) {
-    const resposta = await fetch(`/relay_${tipo}/${estado}`, { method: 'POST' });
-    const resultado = await resposta.json();
-    document.getElementById(`resposta_${tipo}`).innerText = resultado.status || resultado.error;
-  }
-
-  function iniciarAutoTemp() {
-    const min = parseFloat(document.getElementById("tempMin").value);
-    const max = parseFloat(document.getElementById("tempMax").value);
-
-    if (isNaN(min) || isNaN(max) || min >= max) {
-      document.getElementById("resposta_temp").innerText = "Limites inválidos.";
-      return;
-    }
-
-    if (estadoManualTemp === 'on') {
-      alert("Desliga o ventilador manual primeiro.");
-      return;
-    }
-
-    if (intervaloTemp) clearInterval(intervaloTemp);
-
-    verificarLimitesTemp(min, max);
-    intervaloTemp = setInterval(() => verificarLimitesTemp(min, max), 5000);
-  }
-
-  async function verificarLimitesTemp(min, max) {
-    try {
-      const response = await fetch('/ultima_temperatura');
-      const data = await response.json();
-      const valor = parseFloat(data.valor);
-
-      if (!isNaN(valor)) {
-        if (valor <= min) await controlar('temp', 'on');
-        else if (valor >= max) await controlar('temp', 'off');
-      }
-    } catch {
-      document.getElementById("resposta_temp").innerText = "Erro ao obter temperatura.";
+      alertaAtivo=false; pararPiscarLuz();
     }
   }
 
-function iniciarAutoHum() {
-  const min = parseFloat(document.getElementById("humMin").value);
-  const max = parseFloat(document.getElementById("humMax").value);
+  // ==============================================
+  // Controlo do Ventilador
+  // ==============================================
+  // Botões para escolher o modo Manual ou Auto
+  btnTempManualMode.onclick = ()=> definirModoTemp('manual');
+  btnTempAutoMode.onclick   = ()=> definirModoTemp('auto');
 
-  if (isNaN(min) || isNaN(max) || min >= max) {
-    document.getElementById("resposta_hum").innerText = "Limites inválidos.";
-    return;
-  }
-
-  if (estadoManualHum === 'on') {
-    alert("Desliga o humidificador manual primeiro.");
-    return;
-  }
-
-  if (intervaloHum) clearInterval(intervaloHum);
-
-  estadoAutoHum = 'on';
-  verificarLimitesHum(min, max);
-  intervaloHum = setInterval(() => verificarLimitesHum(min, max), 5000);
-}
-
-
-async function verificarLimitesHum(min, max) {
-  // Só continua se o modo auto estiver ativo
-  if (estadoAutoHum !== 'on') return;
-
-  try {
-    const response = await fetch('/ultima_humidade');
-    const data = await response.json();
-    const valor = parseFloat(data.valor);
-
-    if (!isNaN(valor)) {
-      if (valor <= min) {
-        await enviarImpulsos(1); // Ligar
-      } else if (valor >= max) {
-        await enviarImpulsos(2); // Desligar
-      }
-    }
-  } catch {
-    document.getElementById("resposta_hum").innerText = "Erro ao obter humidade.";
-  }
-}
-
-
-
-
-
-  function pararAutoTemp() {
-    if (intervaloTemp) {
-      clearInterval(intervaloTemp);
-      intervaloTemp = null;
-    }
-    controlar('temp', 'off');
-    document.getElementById("tempMin").value = '';
-    document.getElementById("tempMax").value = '';
-    document.getElementById("resposta_temp").innerText = "Modo Auto desativado.";
-    document.getElementById("resposta_temp").style.color = "green";
-  }
-
-function pararAutoHum() {
-  if (intervaloHum) {
-    clearInterval(intervaloHum);
-    intervaloHum = null;
-  }
-
-  estadoAutoHum = 'off';
-  enviarImpulsos(2); // desliga o humidificador
-  document.getElementById("humMin").value = '';
-  document.getElementById("humMax").value = '';
-  document.getElementById("resposta_hum").innerText = "Modo Auto desativado.";
-  document.getElementById("resposta_hum").style.color = "green";
-}
-
-
-  async function enviarImpulsos(qtd) {
-    for (let i = 0; i < qtd; i++) {
-      await controlar('hum', 'on');
-      await esperar(500);
-      await controlar('hum', 'off');
-      await esperar(500);
+  /** Altera entre mostrar controles manuais ou automáticos */
+  function definirModoTemp(modo){
+    if(modo==='manual'){
+      // impede manual se Auto estiver ativo
+      if(estadoAutoTemp==='on'){ alert('Desativa o modo Auto primeiro'); return; }
+      manualControlsTemp.style.display='block';
+      autoControlsTemp.style.display='none';
+      // se estava em auto, cancela intervalos
+      if(intervaloTemp){ clearInterval(intervaloTemp); intervaloTemp=null; respostaTemp.innerText='Auto desativado'; }
+      atualizarBotaoTemp();
+    } else {
+      // impede auto se Manual estiver ativo
+      if(estadoManualTemp==='on'){ alert('Desliga o modo Manual primeiro'); return; }
+      manualControlsTemp.style.display='none';
+      autoControlsTemp.style.display='block';
     }
   }
 
-  function esperar(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  async function iniciarStreamDroidCam() {
-    try {
-      const permissao = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      permissao.getTracks().forEach(track => track.stop());
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const droidCam = devices.find(d => d.kind === "videoinput" && d.label.toLowerCase().includes("droidcam"));
-      const constraints = { video: droidCam ? { deviceId: { exact: droidCam.deviceId } } : true, audio: false };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      document.getElementById("mini-video").srcObject = stream;
-      document.getElementById("full-video").srcObject = stream;
-    } catch (e) {
-      console.error("Erro ao iniciar câmara:", e);
+  /** Alterna o estado manual do ventilador (liga/desliga) */
+  botaoModoTemp.onclick = async function alternarModoTemp(){
+    if(estadoManualTemp==='off'){
+      await controlar('temp','on');
+      estadoManualTemp='on'; estadoRealTemp='on';
+    } else {
+      await controlar('temp','off');
+      estadoManualTemp='off'; estadoRealTemp='off';
     }
-  }
-
-  function abrirModal() {
-    document.getElementById("modal-stream").style.display = "flex";
-  }
-
-  function fecharModal() {
-    document.getElementById("modal-stream").style.display = "none";
-  }
-
-  async function atualizarInfos() {
-    try {
-      const [temp, hum] = await Promise.all([
-        fetch('/ultima_temperatura').then(r => r.json()),
-        fetch('/ultima_humidade').then(r => r.json())
-      ]);
-      document.getElementById("info_temp").innerText = `Temperatura atual: ${temp.valor ?? "--"} °C`;
-      document.getElementById("info_hum").innerText = `Humidade atual: ${hum.valor ?? "--"} %`;
-    } catch {
-      document.getElementById("info_temp").innerText = "Erro ao atualizar.";
-      document.getElementById("info_hum").innerText = "Erro ao atualizar.";
-    }
-  }
-
-  window.onload = () => {
-    iniciarStreamDroidCam();
-    atualizarInfos();
+    atualizarBotaoTemp(); avaliarPiscar();
   };
+  /** Actualiza o texto do botão manual */
+  function atualizarBotaoTemp(){
+    botaoModoTemp.innerText = (estadoManualTemp==='on'?'Desligar':'Ligar') + ' Ventilador';
+  }
 
-  setInterval(atualizarInfos, 5000);
+  /** Alterna o estado automático (inicia/para o ciclo) */
+  botaoAutoTemp.onclick = function alternarAutoTemp(){
+    if(estadoAutoTemp==='on'){
+      // desativa auto, mantém inputs visíveis
+      pararAutoTemp();
+      pararPiscarLuz();
+      estadoAutoTemp='off';
+      autoControlsTemp.style.display='block';
+      manualControlsTemp.style.display='none';
+      botaoAutoTemp.innerText='Aplicar';
+      respostaTemp.innerText='';
+      avaliarPiscar();
+    } else {
+      // activa auto
+      manualControlsTemp.style.display='none';
+      autoControlsTemp.style.display='block';
+      iniciarAutoTemp();
+      estadoAutoTemp='on';
+      botaoAutoTemp.innerText='Desativar Auto';
+    }
+  };
+  /** Inicia o ciclo automático de leitura de temperatura */
+  function iniciarAutoTemp(){
+    const min= parseFloat(tempMinInput.value), max= parseFloat(tempMaxInput.value);
+    if(isNaN(min)||isNaN(max)||min>=max){ respostaTemp.innerText='Limites inválidos.'; return; }
+    if(estadoManualTemp==='on'){ alert('Desliga o modo Manual primeiro'); return; }
+    if(intervaloTemp) clearInterval(intervaloTemp);
+    verificarLimitesTemp(min,max);
+    intervaloTemp=setInterval(()=>verificarLimitesTemp(min,max),5000);
+  }
+  /** Verifica e ajusta o ventilador conforme limites */
+  async function verificarLimitesTemp(min,max){
+    try {
+      const data=await (await fetch('/ultima_temperatura')).json();
+      const v=parseFloat(data.valor);
+      if(!isNaN(v)){
+        if(v<=min && estadoRealTemp!=='on'){
+          await controlar('temp','on'); estadoRealTemp='on';
+        } else if(v>=max && estadoRealTemp!=='off'){
+          await controlar('temp','off'); estadoRealTemp='off';
+        }
+        avaliarPiscar();
+      }
+    } catch{ respostaTemp.innerText='Erro ao obter temperatura.'; }
+  }
+  /** Para o ciclo automático e reseta inputs */
+  function pararAutoTemp(){
+    if(intervaloTemp) clearInterval(intervaloTemp), intervaloTemp=null;
+    controlar('temp','off'); estadoRealTemp='off';
+    tempMinInput.value=tempMaxInput.value='';
+    respostaTemp.innerText='Auto desativado.';
+  }
+
+  // ==============================================
+  // Controlo do Humidificador
+  // ==============================================
+  btnHumManualMode.onclick = ()=> definirModoHum('manual');
+  btnHumAutoMode.onclick   = ()=> definirModoHum('auto');
+
+  /** Alterna visibilidade dos controles Hum */
+  function definirModoHum(modo){
+    if(modo==='manual'){
+      if(estadoAutoHum==='on'){ alert('Desativa o modo Auto primeiro'); return; }
+      manualControlsHum.style.display='block';
+      autoControlsHum.style.display='none';
+      if(intervaloHum) clearInterval(intervaloHum), intervaloHum=null;
+      atualizarBotaoHum();
+    } else {
+      if(estadoManualHum==='on'){ alert('Desliga o modo Manual primeiro'); return; }
+      manualControlsHum.style.display='none';
+      autoControlsHum.style.display='block';
+    }
+  }
+  /** Liga/Desliga manual do Hum */
+  botaoModoHum.onclick = async function alternarModoHum(){
+    if(estadoManualHum==='off'){
+      await enviarImpulsos(1);
+      estadoManualHum='on'; estadoRealHum='on';
+    } else {
+      await enviarImpulsos(2);
+      estadoManualHum='off'; estadoRealHum='off';
+    }
+    atualizarBotaoHum(); avaliarPiscar();
+  };
+  function atualizarBotaoHum(){
+    botaoModoHum.innerText = (estadoManualHum==='on'?'Desligar':'Ligar') + ' Humidificador';
+  }
+  /** Alterna automático do Hum */
+  botaoAutoHum.onclick = function alternarAutoHum(){
+    if(estadoAutoHum==='on'){
+      pararAutoHum();
+      pararPiscarLuz();
+      estadoAutoHum='off';
+      autoControlsHum.style.display='block';
+      manualControlsHum.style.display='none';
+      botaoAutoHum.innerText='Aplicar';
+      respostaHum.innerText='';
+      avaliarPiscar();
+    } else {
+      manualControlsHum.style.display='none';
+      autoControlsHum.style.display='block';
+      iniciarAutoHum();
+      estadoAutoHum='on';
+      botaoAutoHum.innerText='Desativar Auto';
+    }
+  };
+  /** Inicia ciclo auto Hum */
+  function iniciarAutoHum(){
+    const min=parseFloat(humMinInput.value), max=parseFloat(humMaxInput.value);
+    if(isNaN(min)||isNaN(max)||min>=max){ respostaHum.innerText='Limites inválidos.'; return; }
+    if(estadoManualHum==='on'){ alert('Desliga o modo Manual primeiro'); return; }
+    if(intervaloHum) clearInterval(intervaloHum);
+    estadoAutoHum='on';
+    verificarLimitesHum(min,max);
+    intervaloHum=setInterval(()=>verificarLimitesHum(min,max),5000);
+  }
+  /** Verifica limites de humidade */
+  async function verificarLimitesHum(min,max){
+    if(estadoAutoHum!=='on'||executandoAutoHum) return;
+    executandoAutoHum=true;
+    try {
+      const data=await (await fetch('/ultima_humidade')).json();
+      const v=parseFloat(data.valor);
+      if(!isNaN(v)){
+        if(v<=min&&estadoRealHum!=='on'){ await enviarImpulsos(1); estadoRealHum='on'; }
+        else if(v>=max&&estadoRealHum!=='off'){ await enviarImpulsos(2); estadoRealHum='off'; }
+        avaliarPiscar();
+      }
+    } catch{ respostaHum.innerText='Erro ao obter humidade.'; }
+    finally{ executandoAutoHum=false; }
+  }
+  /** Para ciclo auto e reseta inputs Hum */
+  function pararAutoHum(){
+    if(intervaloHum) clearInterval(intervaloHum), intervaloHum=null;
+    enviarImpulsos(2); estadoRealHum='off';
+    humMinInput.value=humMaxInput.value='';
+    respostaHum.innerText='Auto desativado.'; estadoAutoHum='off';
+  }
+
+  // ==============================================
+  // Funções auxiliares para chamar API de relés
+  // ==============================================
+  async function controlar(tipo,estado){
+    const res=await fetch(`/relay_${tipo}/${estado}`,{method:'POST'});
+    const json=await res.json();
+    if(tipo==='temp') respostaTemp.innerText=json.status||json.error;
+    else             respostaHum.innerText =json.status||json.error;
+  }
+  async function enviarImpulsos(qtd){
+    await controlar('hum', qtd===1?'on':'off');
+  }
+
+  // ==============================================
+  // Lógica da câmara
+  // ==============================================
+  async function iniciarStreamDroidCam(){
+    try {
+      // pede permissão e descarta streams anteriores
+      const perm=await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+      perm.getTracks().forEach(t=>t.stop());
+      // escolhe dispositivo DroidCam se existir
+      const devs=await navigator.mediaDevices.enumerateDevices();
+      const cam=devs.find(d=>d.kind==='videoinput'&&d.label.toLowerCase().includes('droidcam'));
+      const str=await navigator.mediaDevices.getUserMedia({
+        video: cam?{deviceId:{exact:cam.deviceId}}:true,
+        audio:false
+      });
+      miniVideo.srcObject=str;
+      fullVideo.srcObject=str;
+    } catch(e){ console.error('Erro câmara:',e); }
+  }
+  // clique para abrir/fechar modal
+  miniVideo.onclick     = ()=> modalStream.style.display='flex';
+  btnCloseModal.onclick = ()=> modalStream.style.display='none';
+
+  // ==============================================
+  // Atualização periódica de leitura de sensores
+  // ==============================================
+  async function atualizarInfos(){
+    try {
+      const [t,h]=await Promise.all([
+        fetch('/ultima_temperatura').then(r=>r.json()),
+        fetch('/ultima_humidade').then(r=>r.json())
+      ]);
+      infoTemp.innerText=`Temperatura atual: ${t.valor||'--'} °C`;
+      infoHum.innerText=`Humidade atual: ${h.valor||'--'} %`;
+    } catch {
+      infoTemp.innerText='Erro'; infoHum.innerText='Erro';
+    }
+  }
+  // no carregamento e a cada 5s
+  window.onload = ()=>{ iniciarStreamDroidCam(); atualizarInfos(); };
+  setInterval(atualizarInfos,5000);
+
+
+// ==============================================
+// Controlo do Tapete / Luz Verde
+// ==============================================
+  async function toggleTapete() {
+    const btn    = document.getElementById('btnTapeteToggle');
+    const info   = document.getElementById('info_tapete');
+    const resMsg = document.getElementById('resposta_tapete');
+    const ligado = btn.dataset.on === 'true';
+    const action = ligado ? 'off' : 'on';
+
+    const r    = await fetch(`/luz_verde/${action}`, { method:'POST' });
+    const j    = await r.json();
+
+    if (!r.ok) {
+      alert(j.error);    // pop-up de erro
+      return;            // não altera nada
+    }
+
+    // sucesso
+    resMsg.innerText  = j.status;
+    btn.dataset.on   = (!ligado).toString();
+    btn.innerText     = ligado ? 'Ligar Tapete' : 'Desligar Tapete';
+    info.innerText    = ligado ? 'Desligado'     : 'Ligado';
+  }
+
+  async function atualizarStatusTapete() {
+    try {
+      const r = await fetch('/luz_verde/status');
+      const j = await r.json();
+      if (j.estado) {
+        const ligado = j.estado==='on';
+        const btn    = document.getElementById('btnTapeteToggle');
+        const info   = document.getElementById('info_tapete');
+        btn.dataset.on = ligado.toString();
+        btn.innerText  = ligado ? 'Desligar Tapete' : 'Ligar Tapete';
+        info.innerText = ligado ? 'Ligado'          : 'Desligado';
+      }
+    } catch {
+      console.warn('Não consegui obter status do Tapete');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnTap = document.getElementById('btnTapeteToggle');
+    btnTap.dataset.on = 'false';
+    btnTap.addEventListener('click', toggleTapete);
+    // polling a cada 2s
+    atualizarStatusTapete();
+    setInterval(atualizarStatusTapete, 2000);
+  });
+
+
 </script>
-
-
 </body>
 </html>

@@ -1,0 +1,60 @@
+PASSWORD MAQUINA LINUX = opc
+
+bd zabbix
+
+zabbix
+zabbixoci
+
+
+frontend zabbix
+
+Admin 
+zabbix
+
+
+grafana 
+admin 
+zabbix
+
+
+ip fiedlogger:
+
+192.168.0.30
+255.255.255.0
+192.168.0.1
+
+
+http agente: 
+
+C:\PRODSENSE\API\api_logger.py
+python api_logger.py
+uvicorn api_logger:app --host 127.0.0.1 --port 8000
+http://localhost:8000/status_logger
+zabbix: http://<ip_da_maquina_windows>:8000/status_logger
+
+alterar sempre o ip da placa para 192.168.0.100
+
+
+
+
+TOKEN:
+
+7909349904:AAEAwWBYHy_VEFV-ypUJGNuKe0OqLFpa10M
+
+https://api.telegram.org/bot7909349904:AAEAwWBYHy_VEFV-ypUJGNuKe0OqLFpa10M/getUpdates
+-4984503981
+
+https://api.telegram.org/bot7909349904:AAEAwWBYHy_VEFV-ypUJGNuKe0OqLFpa10M/sendMessage?chat_id=-4984503981&text=TestandoEnvio
+
+
+
+
+https://github.com/davidazdias1/SysSense
+
+echo "# SysSense" >> README.md
+git init
+git add README.md
+git commit -m "Primeiro commit"
+git branch -M main
+git remote add origin https://github.com/davidazdias1/SysSense.git
+git push -u origin main
